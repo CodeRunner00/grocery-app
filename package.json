@@ -1,0 +1,19 @@
+{
+  "name": "grocery-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "prestart": "",
+    "client": "cd grocery-list-client && npm start",
+    "server": "cd server && npm run devStart",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "author": "",
+  "proxy": "http://localhost:3005",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^5.1.0"
+  },
+  "dependencies": {},
+  "description": ""
+}

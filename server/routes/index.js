@@ -1,11 +1,21 @@
 const express = require('express')
 const router = express.Router()
 const db = require('../models/')
+const passport = require('passport');
 
-console.log('db from model ', db);
+const getCurrentUser = (req, res) => {
+  // I'm picking only the specific fields its OK for the audience to see publicly
+  // never send the whole user object in the response, and only show things it's OK
+  // for others to read (like ID, name, email address, etc.)
+  const { id, username } = req.user;
+  res.json({
+    id, username
+  });
+}
+
 
 const userCache = {};
-
+//passport.authenticate('local')
 router.post('/register', async (req, res) => {
   console.log('post user req ', req.body)
   if(userCache[req.body.userId]) res.json(userCache[req.body.userId]);
@@ -14,7 +24,7 @@ router.post('/register', async (req, res) => {
     userExists = await db.User.findOne({ where: { userId: req.body.userId } });
     console.log('found a user ', userExists);
     userCache[req.body.user] = userExists;
-    if(userExists) res.json(userExists);
+    if(userExists) res.status(401).json({message: 'User already exists'});
   } catch (err) {
     console.log('yep it failed in finding a user ', err);
     res.status(500).json({ message: err.message })
@@ -22,47 +32,46 @@ router.post('/register', async (req, res) => {
   if(!userExists) {
     console.log('trying to create new user');
     try {
-      const user = await db.User.create({ userId: req.body.userId });
+      const user = await db.User.create({ userId: req.body.userId, password: req.body.userId });
       res.json(user)
     } catch (err) {
-      console.log('yep it failed')
+      console.log('yep it failed creating a user')
       res.status(500).json({ message: err.message })
     }
   }  
 });
 
-// router.post('/login', async (req, res) => {
-//   console.log('post user req ', req.body)
-//   const userExists = db.User.findOne({ where: { userId: req.body.userId } }).then((user) => {
-//     console.log('User already exists');
-//     res.json(user)
-//   });
-//   if(!userExists) {
-//     res.statusCode(400);
-//   }  
-// });
+router.post('/login', passport.authenticate('local'), async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({
+      message: 'Invalid username or password.'
+    })
+  }
+  getCurrentUser(req, res);
+});
 
-router.get('/lists/load', async (req, res) => {
+router.post('/lists/load', async (req, res) => {
   console.log('post user req ', req.body)
+
+  if(!req.isAuthenticated()) console.log('this is not an authenticated call!');
 
   let currentUser;
   if(userCache[req.body.userId]) currentUser = userCache[req.body.userId];
   if(!currentUser) {
     try {
       currentUser = await db.User.findOne({ where: { userId: req.body.userId } });
-      console.log('found a user in load lists', userExists);
-      userCache[req.body.user] = userExists;
-      if(userExists) res.json(userExists);
+      console.log('found a user in load lists', currentUser);
+      userCache[req.body.user] = currentUser;
     } catch (err) {
       console.log('yep it failed in finding a user ', err);
       res.status(500).json({ message: err.message })
     }
   }  
 
-  let parentList;
+  let parentLists = [];
 
   try {
-    parentList = await db.List.findOne({where: { UserId: currentUser.id }});
+    parentLists = await db.List.findAll({where: { UserId: currentUser.id }});
   } catch(err) {
     console.log('error searching for parentList');
   }
@@ -71,14 +80,24 @@ router.get('/lists/load', async (req, res) => {
   //   // res.json(list)
   // });
 
-  if(!parentList) {
+  if(!parentLists) {
     res.statusCode(400);
   } 
-
+  let listsWithItems = [];
   try {
-    const items =  await db.Item.findAll({where: { listId: parentList.id }});
-    console.log('Sending back a list and items of the user');
-    res.json({list: parentList, items });
+    const all = await Promise.all(parentLists.map(async (list, i) => {
+      const currentItems = await db.Item.findAll({where: { listId: list.id }});
+      // console.log('currentItems ', currentItems);
+     let obj = {
+        id: list.id,
+        title: list.title,
+        items: await currentItems
+      };
+      return obj;
+    }));
+    console.log('Sending the all the items and lists', all);
+
+    res.json({allItems: all});
   } catch(err) {
     console.log('Error fetching item s', err);
   }
@@ -87,10 +106,6 @@ router.get('/lists/load', async (req, res) => {
   //   console.log('Sending back a list and items of the user');
   //   res.json({list: parentList, items: items});
   // });
-
-
-  
-  res.json({list: parentList, items })
 });
 
 router.post('/lists/new', async (req, res) => {
@@ -131,20 +146,20 @@ router.post('/lists/new', async (req, res) => {
   res.send('success creating the list with items');
 });
 
-// router.post('/login', async (req, res) => {
-//   const list = new List({
-//     title: req.body.title,
-//     list: req.body.list
-//   });
+router.post('/lists/delete', async (req, res) => {
+  console.log('req.body in deleted list ', req.body);
+  const destroyed = await db.List.destroy({
+    where: {
+      id: req.body.id
+    }
+  }); 
+  console.log('list destroyed ', destroyed);
+  res.json(destroyed);
+});
 
-//   console.log('in the post request ', req.body);
-
-//   try {
-//     const newList = await list.save()
-//     res.status(201).json(newList)
-//   } catch (err) {
-//     res.status(400).json({ message: err.message })
-//   }
-// });
+router.get('/logout', function(req, res){
+  req.logout();
+  res.status(200).json({user: req.user});
+});
 
 module.exports = router;

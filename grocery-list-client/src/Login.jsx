@@ -9,9 +9,7 @@ export default function(props) {
   
   // const redirect = props.register;
   const { setUser, userId, redirect, setRedirect } = props;
-
   const [password, setPassword] = useState('');
-
   const handleChangePass = (e) => {
     console.log('setting the userId ', e.target.value);
     setPassword(e.target.value);
@@ -25,7 +23,7 @@ export default function(props) {
     console.log('submitting a user');
     e.preventDefault();
     console.log('userId ', userId);
-    axios.post('http://localhost:3005/register', {
+    axios.post('http://localhost:3005/login', {
       userId: userId,
       password: password
     })
@@ -42,19 +40,18 @@ export default function(props) {
 
   return (
   <div>
-    <p>Sign Up</p>
-    {redirect ? <Redirect to="/" /> :
-    (<form>
+    <p>Log In</p>
+    <form>
       <label>
       Username:
         <input type="text" name="Username" value={userId} onChange={handleChangeUsername} />
       </label>
       <label>
-        Password:
+      Password:
         <input type="text" name="Password" value={password} onChange={handleChangePass} />
       </label>
       <input type="submit" value="Submit" onClick={onSubmit} />
-    </form>)}
+    </form>
   </div>
   );
 }

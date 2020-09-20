@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Item from './Item.jsx';
 import axios from 'axios';
+import styled from '@emotion/styled';
 
 export default function NewList(props) {
   const [items, setItems] = useState([]);
@@ -45,22 +46,30 @@ export default function NewList(props) {
 
 return (
   <div className="page-component">
-    <form onSubmit={addItem}>
-      <h1>Add grocery items</h1>
-      <p>What's the Title of the list?</p>
-      <input
-        type='text'
-        value={title} 
-        onChange={handleTitle}
-      />
-      <p>What's the item?</p>
-      <input
-        type='text'
-        value={value} 
-        onChange={handleChange}
-      />
-      <input type='submit' />
-    </form>
+  <h1>Add grocery items</h1>
+    <FormWrapper>
+      <form onSubmit={addItem}>
+        <InputWrapper>
+          <label>Title:
+            <input
+              type='text'
+              value={title} 
+              onChange={handleTitle}
+            />
+          </label>
+        </InputWrapper>
+        <InputWrapper>
+          <label>Add an item:
+            <input
+              type='text'
+              value={value} 
+              onChange={handleChange}
+            />
+          </label>
+          <input type='submit' />
+        </InputWrapper>
+        </form>
+      </FormWrapper>  
     {items.map((item, i) => {
       return <Item item={item} key={i} />
     })}
@@ -72,3 +81,12 @@ return (
 );
 
 }
+
+const FormWrapper = styled.div`
+  padding-left: 20%;
+  text-align: left;
+`;
+
+const InputWrapper = styled.div`
+  padding: 10% 0;
+`;

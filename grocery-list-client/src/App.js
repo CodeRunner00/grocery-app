@@ -3,6 +3,8 @@ import './App.css';
 import Home from './Home.jsx';
 import { Button } from '@material-ui/core';
 import Register from './Register.jsx';
+import Login from './Login.jsx';
+import Signout from './Signout.jsx';
 import {
   BrowserRouter as Router,
   Switch,
@@ -13,11 +15,11 @@ import { makeStyles } from '@material-ui/core/styles';
 import NewList from './NewList.jsx';
 import LoadList from './LoadList.jsx';
 import styled from '@emotion/styled';
-import { css } from '@emotion/core';
+
 
 const useStyles = makeStyles({
   root: {
-    background: 'blue',
+    background: 'black',
     border: 0,
     borderRadius: 5,
     color: 'white',
@@ -62,35 +64,39 @@ function App() {
   const classes = useStyles();
   const linkClasses = linkStyles();
   const [redirect, setRedirect] = useState(false);
+
+
+
+
   return (
     <Router>
     <AppWrapper>
-    <p>Welcome!</p>
-    {!redirect ? ( <div > <Button className={classes.root}>
-      <Link to="/register" className={linkClasses.root}>Register</Link>
-    </Button>
-    <Button className={classes.root}>
-      <Link to="/login" className={linkClasses.root}>Login</Link>
-    </Button> </div> ) : null }
-    
+    <h1>List Loader Pro!</h1>
+    {redirect ? ( <div><Link to="/create" className={linkClasses.root}><Button className={classes.root}> Create A list</Button></Link> <br></br>
+      <Link to="/load" className={linkClasses.root} onClick={() => console.log('clicked on load list from homepage!')}><Button className={classes.root}>Load Lists</Button></Link>
+      </div> ) : <div > <Link to="/login" className={linkClasses.root}><Button className={classes.root} onClick={(e) => console.log('clicked on login from homepage!')}> Log In </Button></Link>
+      <br></br><Link to="/register" className={linkClasses.root}><Button className={classes.root} onClick={(e) => console.log('clicked on register from homepage!')}>Sign Up</Button></Link>
+      </div> }
+
+      {redirect && <Signout user={user} setRedirect={setRedirect} /> }
 
 
     <Switch>
-          <Route path="/create">
-            <NewList user={user} isLoggedIn={redirect} />
-          </Route>
-          <Route path="/load">
-            <LoadList user={user} isLoggedIn={redirect}/>
-          </Route> 
-          <Route path="/register">
-            <Register userId={user} setUser={setUser} setRedirect={setRedirect} redirect={redirect}/>
-          </Route>
-          {/* <Route path="/login">
-            <LoadList user={user} />
-          </Route> */}
-          <Route path="/" >
-            <Home userId={user} isLoggedIn={redirect} />
-          </Route>
+      <Route path="/create">
+        <NewList user={user} isLoggedIn={redirect} />
+      </Route>
+      <Route path="/load">
+        <LoadList user={user} isLoggedIn={redirect}/>
+      </Route> 
+      <Route path="/register">
+        <Register userId={user} setUser={setUser} setRedirect={setRedirect} redirect={redirect}/>
+      </Route>
+      <Route path="/login">
+        <Login userId={user} setUser={setUser} setRedirect={setRedirect} redirect={redirect} />
+      </Route>
+      <Route path="/" >
+        <Home userId={user} isLoggedIn={redirect} />
+      </Route>
     </Switch>
 
     </AppWrapper>
@@ -99,9 +105,15 @@ function App() {
 }
 
 const AppWrapper = styled.div`
+  margin-top: 10%;
   position: relative;
   text-align: center;
   margin: 0 auto;
+  max-width: 500px;
+  padding: 5% 0;
+  width: 100%;
+  background-color: lightblue;
+  border-radius: 10px;
 `;
 
 export default App;

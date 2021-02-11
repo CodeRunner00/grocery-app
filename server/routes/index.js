@@ -13,7 +13,9 @@ const getCurrentUser = (req, res) => {
   });
 }
 
-
+router.get('/', (req, res) => {
+  res.send('We are connected to the backend!');
+});
 const userCache = {};
 //passport.authenticate('local')
 router.post('/register', async (req, res) => {
@@ -24,15 +26,42 @@ router.post('/register', async (req, res) => {
     userExists = await db.User.findOne({ where: { userId: req.body.userId } });
     console.log('found a user ', userExists);
     userCache[req.body.user] = userExists;
-    if(userExists) res.status(401).json({message: 'User already exists'});
+    if(userExists) {
+      userExists.dataValues.password === req.body.password ? res.status(200).json(userExists) : res.status(401).json({message: 'User already exists'});   
+    } 
   } catch (err) {
     console.log('yep it failed in finding a user ', err);
-    res.status(500).json({ message: err.message })
   }
   if(!userExists) {
     console.log('trying to create new user');
     try {
-      const user = await db.User.create({ userId: req.body.userId, password: req.body.userId });
+      const user = await db.User.create({ userId: req.body.userId, password: req.body.password });
+      res.json(user)
+    } catch (err) {
+      console.log('yep it failed creating a user')
+      res.status(500).json({ message: err.message })
+    }
+  }  
+});
+
+router.post('/google/login', async (req, res) => {
+  console.log('post user req ', req.body)
+  if(userCache[req.body.userId]) res.json(userCache[req.body.userId]);
+  let userExists;
+  try {
+    userExists = await db.User.findOne({ where: { userId: req.body.userId } });
+    console.log('found a user ', userExists);
+    userCache[req.body.user] = userExists;
+    if(userExists) {
+      userExists.dataValues.password === req.body.password ? res.status(200).json(userExists) : res.status(401).json({message: 'Incorrect password'});   
+    } 
+  } catch (err) {
+    console.log('yep it failed in finding a user on google login', err);
+  }
+  if(!userExists) {
+    console.log('trying to create new user');
+    try {
+      const user = await db.User.create({ userId: req.body.userId, password: req.body.password });
       res.json(user)
     } catch (err) {
       console.log('yep it failed creating a user')
@@ -51,7 +80,7 @@ router.post('/login', passport.authenticate('local'), async (req, res) => {
 });
 
 router.post('/lists/load', async (req, res) => {
-  console.log('post user req ', req.body)
+  console.log('post req body /lists/load', req.body)
 
   if(!req.isAuthenticated()) console.log('this is not an authenticated call!');
 
@@ -109,7 +138,7 @@ router.post('/lists/load', async (req, res) => {
 });
 
 router.post('/lists/new', async (req, res) => {
-  console.log('post user req ', req.body);
+  console.log('post req body /lists/new', req.body);
   let listParent;
   let currentUser;
   if(userCache[req.body.user]) currentUser = userCache[req.body.user];
@@ -146,6 +175,19 @@ router.post('/lists/new', async (req, res) => {
   res.send('success creating the list with items');
 });
 
+router.post('/list/newitem', async (req, res) => {
+  const listParentId = req.body.listParentId;
+  const item = req.body.item;
+  try {
+    console.log('listparentid ', listParentId);
+    const createItem = await db.Item.create({ val: item, listId: listParentId});
+    console.log('An item list has been created!');
+    res.send(createItem);
+} catch (err) {
+  console.log('error adding new item ', err);
+}
+});
+
 router.post('/lists/delete', async (req, res) => {
   console.log('req.body in deleted list ', req.body);
   const destroyed = await db.List.destroy({
@@ -156,6 +198,11 @@ router.post('/lists/delete', async (req, res) => {
   console.log('list destroyed ', destroyed);
   res.json(destroyed);
 });
+
+router.post('/google/auth/register', async (req, res) => {
+  
+});
+
 
 router.get('/logout', function(req, res){
   req.logout();

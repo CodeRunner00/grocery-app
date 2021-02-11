@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, { useContext } from 'react';
 import styled from '@emotion/styled';
 import axios from 'axios';
-
+import ApiContext from './ApiContext';
 const SignoutButton = styled.button`
-  position: absolute;
-  top: 4%;
-  right: 4%;
-  padding: 3%;
-  border-radius: 5px;
-  background-color: black;
-  color: white;
-  font-weight: bold;
+    width: 7em;
+    height: 4em;
+    background-color: rgb(243,242,242);
+    border: none;
+    border-radius: 30px;
+    -webkit-transition: 0.5s ease-out;
+    transition: 0.5s ease-out;
+    font-size: 16px;
+    font-weight: bold;
+    color: black;
+    a {
+      text-decoration: none;
+    }
 `;
 
 function Signout(props) {
@@ -21,9 +26,10 @@ function Signout(props) {
   //   };
   // }
   
-  const { user, setRedirect } = props;
+  const { setRedirect } = props;
+  const api = useContext(ApiContext);
   const signOut = _ => {
-    axios.get('http://localhost:3005/logout')
+    axios.get(api + '/logout')
     .then((response) => {
       // handle success
       setRedirect(false);

@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import Item from './Item.jsx';
+import React, { useState, useContext } from 'react';
+// import Item from './Item.jsx';
 import axios from 'axios';
+import { Redirect, useHistory } from 'react-router-dom';
 import styled from '@emotion/styled';
-
+import ApiContext from './ApiContext';
+import Header from './HeaderNav';
 export default function NewList(props) {
   const [items, setItems] = useState([]);
   const [value, setValue] = useState('');
   const [title, setTitle] = useState('');
-  const { userId } = props;
+  const { userId, isLoggedIn, setRedirect } = props;
 
   const handleTitle = (event) => {
     setTitle(event.target.value);
@@ -22,7 +24,16 @@ export default function NewList(props) {
     setValue('');
     event.preventDefault();
   }
+  const removeItem = (index, event) => {
+    const updatedItems = [...items];
+    updatedItems.splice(index, 1);
+    console.log('updated items ', updatedItems);
 
+    setItems(updatedItems);
+    event.preventDefault();
+  }
+  let history = useHistory();
+  const api = useContext(ApiContext);
   const submitList = (event) => {
     console.log('in submit list');
     let req = {
@@ -30,11 +41,11 @@ export default function NewList(props) {
       items: items,
       userId: userId 
     };
-    
-    axios.post('http://localhost:3005/lists/new', req)
+    axios.post(api + '/lists/new', req)
     .then((response) => {
     // handle success
     console.log(response);
+    history.push('/');
    })
   .catch((error) => {
     // handle error
@@ -45,48 +56,120 @@ export default function NewList(props) {
   }
 
 return (
-  <div className="page-component">
-  <h1>Add grocery items</h1>
+  <PageWrapper className="page-component">
+  {isLoggedIn ? (
+    <React.Fragment>
+    <Header setRedirect={setRedirect} />
+    <ListWrapper>
+    <h1 style={{textAlign: 'center', marginTop: '0px', paddingTop: '15px'}}>Add grocery items</h1>
     <FormWrapper>
-      <form onSubmit={addItem}>
+      <form>
         <InputWrapper>
-          <label>Title:
+          <label>
             <input
               type='text'
               value={title} 
               onChange={handleTitle}
+              placeholder="Title"
             />
           </label>
         </InputWrapper>
         <InputWrapper>
-          <label>Add an item:
+          <label>
             <input
               type='text'
               value={value} 
               onChange={handleChange}
+              placeholder="Add an item"
             />
           </label>
-          <input type='submit' />
+          <button onClick={addItem}>+</button>
         </InputWrapper>
         </form>
       </FormWrapper>  
     {items.map((item, i) => {
-      return <Item item={item} key={i} />
+      return <div className="list-item-wrapper"><ListItem index={i} key={i}><span>{item}</span></ListItem><button className="remove-item" onClick={(event) => removeItem(i, event)}>-</button></div>
     })}
-    <form onSubmit={submitList}>
-      <p>Submit the list</p>
-      <input type='submit' />
-    </form>
-  </div>
+    <div className="submit-wrapper"><button className="submit-items" onClick={submitList}>Submit Items</button></div>  </ListWrapper> </React.Fragment>) : <Redirect to="/login" /> }
+  </PageWrapper>
 );
 
 }
 
+const PageWrapper = styled.div`
+  .list-item-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 5%;
+  }
+  .remove-item {
+    height: 50px;
+    width: 70px;
+    background: darkred;
+    color: white;
+  }
+  .submit-items {
+    margin-top: 10px;
+    padding: 15px 7px;
+    background-color: darkgreen;
+    color: white;
+    border-radius: 7px;
+    margin-right: 30px;
+    font-size: 21px;
+  }
+  .submit-wrapper {
+    width: 100%;
+    text-align: right;
+    margin-right: 10%;
+  }
+`;
+
 const FormWrapper = styled.div`
-  padding-left: 20%;
+  padding-left: 14%;
+  padding-bottom: 8%;
   text-align: left;
+  input[type="submit"] {
+    visibility: hidden;
+  }
+  ${'' /* span {
+    color: lightgreen;
+  } */}
+
+  input {
+    border-radius: 10px;
+    font-size: 20px;
+  }
+
+  button {
+    color: white;
+    font-size: 35px;
+    background: green;
+    margin-left: 10px;
+    border-radius: 5px;
+    padding: 2px 15px;
+  }
 `;
 
 const InputWrapper = styled.div`
-  padding: 10% 0;
+display: flex;
+align-items: center;
+  padding: 4% 0;
+`;
+
+const ListItem = styled.div`
+  width: 75%;
+  height: 100%;
+  background-color: azure;
+  border-radius: 5px;
+  margin: 2% auto;
+  span {
+    font-size: 24px;
+  }
+`;
+
+const ListWrapper = styled.div`
+  position: relative;
+  height: 85vh;
+  background: #f4f4f4;
 `;

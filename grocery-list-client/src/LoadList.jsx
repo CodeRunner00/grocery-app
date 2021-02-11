@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { Redirect } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { css } from '@emotion/core';
-
+import ApiContext from './ApiContext';
 export default function(props) {
 
   const [lists, setLists] = useState([]);
@@ -12,10 +12,10 @@ export default function(props) {
   const [selectedList, setSelectedList] = useState({title: '', items: [] });
 
   const { isLoggedIn, user } = props;
-
+  const api = useContext(ApiContext);
   useEffect(() => {
     // Update the document title using the browser API
-    axios.post('http://localhost:3005/lists/load', { userId: user })
+    axios.post(api + '/lists/load', { userId: user })
     .then((response) => {
       // handle success
       console.log(response);
@@ -74,7 +74,15 @@ export default function(props) {
       console.log('selectedLIsts ', )
       setSelectedList({title: selectedList.title, items: toggleStrikedItems});
     }
-  }
+  };
+
+  // const addItem = () => {
+  //   return (
+  //     <React.Fragment>
+  //       <div>+</div>
+  //     </React.Fragment>
+  //   )
+  // }
 
   return (
     isLoggedIn ?
@@ -91,9 +99,10 @@ export default function(props) {
         {selectedList.items.map((item, i) => {
           return <ListItem key={i} strike={item.checked} onClick={handleCheck(item.id)}><span>{i+1}. {item.val}</span></ListItem>
         })}
+        {/* {selectedList.title !== '' && } */}
       </ULParent>
     </div> ) : (
-      <Redirect to="/register" />
+      <Redirect to="/login" />
     )
   );
 }
@@ -125,7 +134,7 @@ const changeFontSize = () => css`
 const ListItem = styled.div`
   width: 75%;
   height: 100%;
-  background-color: lightsalmon;
+  background-color: azure;
   border-radius: 5px;
   margin: 2% auto;
   ${props => props.strike && addStrike()}

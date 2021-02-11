@@ -4,9 +4,11 @@
   "main": "index.js",
   "scripts": {
     "prestart": "",
-    "client": "cd grocery-list-client && npm start",
+    "client": "cd grocery-list-client && npm run devStart",
+    "clientProd": "cd grocery-list-client && npm run start",
     "server": "cd server && npm run devStart",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "prod": "concurrently \"npm run server\" \"npm run clientProd\""
   },
   "author": "",
   "proxy": "http://localhost:3005",

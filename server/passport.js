@@ -2,6 +2,7 @@ const session = require('express-session');
 const cookieparser = require('cookie-parser');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+// var GoogleStrategy = require( 'passport-google-oauth2' ).Strategy;
 const db = require('./models/');
 
 // export a function that receives the Express app we will configure for Passport
@@ -14,15 +15,15 @@ module.exports = (app) => {
     // this should be changed to something cryptographically secure for production
     secret: 'keyboard cat',
     resave: false,
-    saveUninitialized: false,
+    // saveUninitialized: false,
     // automatically extends the session age on each request. useful if you want
     // the user's activity to extend their session. If you want an absolute session
     // expiration, set to false
-    rolling: true,
-    name: 'sid', // don't use the default session cookie name
+    // rolling: true,
+    name: 'grocery.cookie', // don't use the default session cookie name
     // set your options for the session cookie
     cookie: {
-      httpOnly: true,
+      // httpOnly: true,
       // the duration in milliseconds that the cookie is valid
       maxAge: 20 * 60 * 1000, // 20 minutes
       // recommended you use this setting in production if you have a well-known domain you want to restrict the cookies to.
@@ -79,6 +80,30 @@ module.exports = (app) => {
       })
       .catch(done);
   }));
+
+
+//   passport.use(new GoogleStrategy({
+//     clientID:     "1056256709536-9btq8hmkm56ngdhrl6rl6pdkm3i4c6qa.apps.googleusercontent.com",
+//     clientSecret: "SBTaHRagwTqKjCg1YxXv6a-_",
+//     callbackURL: "http://localhost:3005/auth/google/callback",
+//     passReqToCallback   : true
+//   },
+//   function(request, accessToken, refreshToken, profile, done) {
+//     return db.User.findOne({ where: { userId: profile.id } })
+//       .then(user => {
+//         // if no matching user was found...
+//         if (!user) {
+//           return done(null, false, { message: errorMsg });
+//         }
+
+//         // call our validate method, which will call done with the user if the
+//         // passwords match, or false if they don't
+//         const isMatch = user.dataValues.password === password;
+//         return done(null, isMatch ? user : false, isMatch ? null : { message: errorMsg });
+//       })
+//       .catch(done);
+//   }
+// ));
 
   // initialize passport. this is required, after you set up passport but BEFORE you use passport.session (if using)
   app.use(passport.initialize());
